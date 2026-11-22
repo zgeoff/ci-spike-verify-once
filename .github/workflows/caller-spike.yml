@@ -1,6 +1,7 @@
 name: caller-spike
 on:
-  workflow_dispatch:
+  push:
+    branches: [spike-ctx]
 jobs:
   call:
     uses: zgeoff/ci-spike-verify-once/.github/workflows/called.yml@spike-ctx
