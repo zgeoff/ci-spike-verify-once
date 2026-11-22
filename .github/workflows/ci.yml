@@ -1,0 +1,39 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *" # nightly full clean run: the backstop for a faked or broken local record
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  # the required check: it always runs and reports, and skips only the steps a record covers
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2 # a PR's merge commit plus its two parents
+      - name: Look up local green record
+        id: rec
+        env:
+          EVENT: ${{ github.event_name }}
+        run: bash scripts/ci-lookup.sh
+      - name: GITHUB_TOKEN rate limit (separate from the owner's 5,000/hr)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api rate_limit --jq '.resources.core | "limit=\(.limit) used=\(.used)"'
+      - name: Setup Bun
+        if: steps.rec.outputs.all != 'hit'
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: .bun-version
+      - name: Lint
+        if: steps.rec.outputs.lint != 'hit'
+        run: bun run check:lint
+      - name: Test
+        if: steps.rec.outputs.test != 'hit'
+        run: bun run check:test

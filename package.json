@@ -1,0 +1,9 @@
+{
+  "name": "ci-spike-verify-once",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:lint": "bun scripts/lint.ts && bun -e \"await Bun.sleep(8000)\"",
+    "check:test": "bun test && bun -e \"await Bun.sleep(8000)\""
+  }
+}
