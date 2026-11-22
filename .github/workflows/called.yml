@@ -1,0 +1,16 @@
+name: called
+on:
+  workflow_call:
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Print contexts
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+          WORKFLOW_REF: ${{ github.workflow_ref }}
+          GITHUB_SHA_CTX: ${{ github.sha }}
+          JOB_WORKFLOW_SHA: ${{ job.workflow_sha }}
+          JOB_WORKFLOW_REF: ${{ job.workflow_ref }}
+        run: env | grep -E '^(WORKFLOW_|GITHUB_SHA_CTX|JOB_WORKFLOW_)' | sort
