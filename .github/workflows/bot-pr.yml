@@ -1,0 +1,31 @@
+name: bot-pr
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+jobs:
+  open:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Commit and push a branch with the built-in token
+        env:
+          BRANCH: bot-${{ github.run_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          date -u > bot.txt
+          git add bot.txt
+          git commit -m "chore: bot change"
+          git push origin "$BRANCH"
+      - name: Open the PR and dispatch CI on its branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: bot-${{ github.run_id }}
+        run: |
+          gh pr create --head "$BRANCH" --title "chore: bot change" --body "spike"
+          gh workflow run ci.yml --ref "$BRANCH"
